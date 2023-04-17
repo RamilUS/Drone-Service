@@ -28,7 +28,7 @@ import java.util.Map;
 public class Drone {
     @Id
     @Size(min = 1, max = 100)
-    @Column(updatable = false)
+    @Column(name = "SERIAL_NUMBER", updatable = false)
     private String serialNumber;
 
     @Version
