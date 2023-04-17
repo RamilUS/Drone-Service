@@ -1,6 +1,7 @@
 package com.musalasoft.demo.service;
 
 import com.musalasoft.demo.exception.DroneLoadingException;
+import com.musalasoft.demo.exception.DroneRegistrationException;
 import com.musalasoft.demo.model.drone.Drone;
 import com.musalasoft.demo.model.drone.DroneType;
 import com.musalasoft.demo.model.drone.State;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,17 +29,23 @@ public class DroneManager {
      * @param weight
      * @return drone id;
      */
-    public String registerDrone(String serialNumber, DroneType type, Integer weight) {
-        Drone drone = new Drone(
-                serialNumber,
-                1L,
-                type,
-                weight,
-                0,
-                State.IDLE,
-                null
-        );
-        droneRepo.save(drone);
+    public String registerDrone(String serialNumber, DroneType type) {
+        Optional<Drone> drone = droneRepo.findById(serialNumber);
+
+        if (drone.isPresent()) {
+            throw new DroneRegistrationException("Drone with this serial number already registered");
+        } else {
+            droneRepo.save(new Drone(
+                            serialNumber,
+                            1L,
+                            type,
+                            0,
+                            0,
+                            State.IDLE,
+                            null
+                    )
+            );
+        }
         return serialNumber;
     }
 

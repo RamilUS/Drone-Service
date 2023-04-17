@@ -1,6 +1,5 @@
 package com.musalasoft.demo.model.drone;
 
-import com.musalasoft.demo.model.medication.Medication;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -35,6 +34,7 @@ public class Drone {
     private Long version;
 
     @Column(updatable = false)
+    @Enumerated(EnumType.ORDINAL)
     private DroneType type; //(Lightweight, Middleweight, Cruiserweight, Heavyweight);
 
     @Column(nullable = false)
@@ -46,7 +46,7 @@ public class Drone {
     @Max(100)
     private Integer batteryLevel;
 
-    @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.ORDINAL)
     private State state; //(IDLE, LOADING, LOADED, DELIVERING, DELIVERED, RETURNING).
 
     @ElementCollection(fetch = FetchType.EAGER)
