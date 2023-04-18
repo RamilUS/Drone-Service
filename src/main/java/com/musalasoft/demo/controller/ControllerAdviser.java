@@ -11,7 +11,7 @@ public class ControllerAdviser {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ExceptionResponse> handleException(Exception e) {
         return ResponseEntity
-                .status(HttpStatus.ACCEPTED)
+                .status(HttpStatus.OK)
                 .body(new ExceptionResponse(-1L, e.getClass().getName(), e.getMessage()));
     }
 }
