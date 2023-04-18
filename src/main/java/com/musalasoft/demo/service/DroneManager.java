@@ -1,7 +1,7 @@
 package com.musalasoft.demo.service;
 
 import com.musalasoft.demo.exception.DroneLoadingException;
-import com.musalasoft.demo.exception.DroneRegistrationException;
+import com.musalasoft.demo.exception.RegistrationException;
 import com.musalasoft.demo.model.drone.Drone;
 import com.musalasoft.demo.model.drone.DroneType;
 import com.musalasoft.demo.model.drone.State;
@@ -26,27 +26,43 @@ public class DroneManager {
      *
      * @param serialNumber
      * @param type
-     * @param weight
      * @return drone id;
      */
-    public String registerDrone(String serialNumber, DroneType type) {
+    public String registerDrone(String serialNumber, DroneType type, Integer batteryLevel) throws RegistrationException {
         Optional<Drone> drone = droneRepo.findById(serialNumber);
 
         if (drone.isPresent()) {
-            throw new DroneRegistrationException("Drone with this serial number already registered");
+            throw new RegistrationException("Drone with this serial number is already registered");
         } else {
             droneRepo.save(new Drone(
                             serialNumber,
                             1L,
                             type,
                             0,
-                            0,
+                            batteryLevel,
                             State.IDLE,
                             null
                     )
             );
         }
         return serialNumber;
+    }
+
+    public String registerMed(String medicationCode, String name, Integer weight, byte[] image) {
+        Optional<Medication> medication = medRepo.findById(medicationCode);
+        if (medication.isPresent()) {
+            throw new RegistrationException("Medication with this code is already registered");
+        } else {
+            medRepo.save(new Medication(
+                            medicationCode,
+                            1L,
+                            name,
+                            weight,
+                            image
+                    )
+            );
+        }
+        return medicationCode;
     }
 
     /**
@@ -56,24 +72,29 @@ public class DroneManager {
      * @param medicationCode - medication code;
      * @throws DroneLoadingException
      */
-    public void loadDrone(String droneId, String medicationCode) throws DroneLoadingException {
+    public Map<String, Integer> loadDrone(String droneId, String medicationCode) throws DroneLoadingException {
         Medication medication = medRepo.findById(medicationCode).orElseThrow(
                 () -> new DroneLoadingException("Medication not found")
         );
 
-        droneRepo.findById(droneId)
-                .ifPresentOrElse(drone -> {
+        return droneRepo.findById(droneId)
+                .map(drone -> {
                     if (medication.getWeight() + drone.getWeight() > 500)
                         throw new DroneLoadingException("Medication is too heavy for this drone");
                     if (drone.getBatteryLevel() < 25)
                         throw new DroneLoadingException("Drone battery less than 25%");
                     drone.setWeight(medication.getWeight() + drone.getWeight());
-                    drone.setState(State.LOADING);
+                    if (drone.getWeight() == 500) {
+                        drone.setState(State.LOADED);
+                    } else {
+                        drone.setState(State.LOADING);
+                    }
                     Map<String, Integer> myMap = drone.getLoadedMeds();
                     myMap.put(medicationCode, myMap.getOrDefault(medicationCode, 0) + 1);
                     droneRepo.save(drone);
+                    return myMap;
 
-                }, () -> new DroneLoadingException("Drone not registered"));
+                }).orElseThrow(() -> new DroneLoadingException("Drone not registered"));
     }
 
     /**
@@ -100,7 +121,7 @@ public class DroneManager {
      * @return list of drones available for loading
      */
     public List<Drone> getAvailableDrones() {
-        return droneRepo.findAllByState(State.IDLE);
+        return droneRepo.findByStateInAndBatteryLevelGreaterThan(List.of(State.IDLE, State.LOADING), 25);
     }
 
     /**
@@ -111,7 +132,7 @@ public class DroneManager {
      */
     public Integer getBatteryLevel(String droneId) {
         return droneRepo.findById(droneId)
-                .map(drone -> drone.getBatteryLevel()
+                .map(Drone::getBatteryLevel
                 ).orElseThrow(
                         () -> new DroneLoadingException("Drone not registered")
                 );

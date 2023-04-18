@@ -5,7 +5,7 @@ CREATE TABLE medication (
   version integer not null,
   name varchar(100) not null,
   weight  integer not null,
-  image binary null,
+  image blob null,
   constraint medication_pk primary key (code)
 );
 --rollback drop table medication;

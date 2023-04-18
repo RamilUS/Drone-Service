@@ -11,4 +11,7 @@ public interface DroneRepo extends JpaRepository<Drone, String> {
     Optional<Drone> findById(String droneId);
 
     List<Drone> findAllByState(State state);
+
+    List<Drone> findByStateInAndBatteryLevelGreaterThan(List<State> state, int value);
+
 }
