@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.musalasoft</groupId>
-	<artifactId>demo</artifactId>
+	<artifactId>drone-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Drone Service</name>
 	<description>Demo project for Musala Soft</description>
